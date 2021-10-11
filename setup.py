@@ -10,7 +10,7 @@ setup(
     description='',
     install_requires=[
         'rllib',
-        'glvm',
+        # 'glvm',
         'carla-utils',
     ],
 
