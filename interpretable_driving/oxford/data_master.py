@@ -49,7 +49,7 @@ class DataMaster(object):
         self.ref_timestamp_array = self.ro.timestamps[mask]
         t2 = time.time()
         print('[{}] {} generate time (reference.timestamps): '.format(self.__class__.__name__, self.name), t2-t1)
-
+        print()
 
         self.delta_t = np.average(np.diff(1e-6* self.ref_timestamp_array))
         return
@@ -63,7 +63,7 @@ class DataMaster(object):
     def init_augment_data(self):
         self.pose_velocity = data_augment.PoseVelocity(self.path, self.ref_timestamp_array, self.ro, self.ins, self.imu_height)
 
-
+        print()
         return
 
 
