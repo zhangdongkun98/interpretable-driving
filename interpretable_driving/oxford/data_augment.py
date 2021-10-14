@@ -24,7 +24,8 @@ class PoseVelocity(DataAugment):
 
         data_path = join(self.save_path, self.file_name)
         if os.path.isfile(data_path):
-            self.data = np.loadtxt(data_path, delimiter=' ', usecols=[], dtype=np.float64).T
+            # self.data = np.loadtxt(data_path, delimiter=' ', usecols=[], dtype=np.float64).T
+            self.data = np.loadtxt(data_path, delimiter=' ', usecols=[], dtype=np.float32).T
         else:
             t1 = time.time()
             min_timestamp, max_timestamp = min(timestamps), max(timestamps)
