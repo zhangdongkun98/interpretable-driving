@@ -96,7 +96,8 @@ class TrajectoryDataset(DatasetTemplate):
 
         # print(data_master_index, data_index, times.shape)
 
+        xy = torch.FloatTensor([trajectory.x, trajectory.y]).T /data_master.max_length
+        # print('xy: shape: ', xy.shape)
 
-
-        return cu.basic.Data(times=times, x=x, y=y, vx=vx, vy=vy).to_dict()
+        return cu.basic.Data(times=times, x=x, y=y, vx=vx, vy=vy, xy=xy).to_dict()
 
