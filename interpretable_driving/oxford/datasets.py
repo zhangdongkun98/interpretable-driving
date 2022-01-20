@@ -2,21 +2,15 @@ import carla_utils as cu
 
 import os
 from os.path import join
-import glob
 import random
 import numpy as np
-from PIL import Image
-import cv2
-import time
 import multiprocessing as mp
 
 import torch
 from torch.utils.data import Dataset
-# import torchvision.transforms as transforms
 
 
 from .data_master import DataMaster
-
 
 
 class DatasetTemplate(Dataset):
