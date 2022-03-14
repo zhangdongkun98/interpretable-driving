@@ -12,11 +12,9 @@ import multiprocessing as mp
 
 import torch
 from torch.utils.data import Dataset
-# import torchvision.transforms as transforms
 
 
 from .data_master import DataMaster
-
 
 
 class DatasetTemplate(Dataset):
