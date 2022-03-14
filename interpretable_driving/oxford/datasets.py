@@ -2,12 +2,12 @@ import carla_utils as cu
 
 import os
 from os.path import join
-import glob
 import random
 import numpy as np
 from PIL import Image
 import cv2
 import time
+from tqdm import tqdm
 import multiprocessing as mp
 
 import torch
@@ -65,24 +65,39 @@ class TrajectoryDataset(DatasetTemplate):
     # max_length = max_speed * trajectory_time
     # num_points = 20
 
+    data_balance_cls = None
+
     skip_time = cu.basic.Data(start=0.0, end=DataMaster.trajectory_time)
 
     def __init__(self, config, mode):
         super().__init__(config, mode)
 
-        self.data_keys = np.loadtxt(join(config.data_keys_dir, 'data_keys_{}.txt'.format(self.mode)), delimiter=' ', usecols=[], dtype=np.int64)
+        data_key_path = join(config.data_keys_dir, 'data_keys_{}.txt'.format(self.mode))
+        if not os.path.isfile(data_key_path):
+            print('\n\n' + cu.basic.prefix(self) + 'generating data keys...')
+            data_balance_cls =  config.get('data_balance_cls', self.data_balance_cls)
+            data_balance = data_balance_cls(config, mode)
+            for i, data_master in enumerate(self.data_masters):
+                for index in tqdm(range(len(data_master))):
+                    trajectory = data_master.get_trajectory(index)
+                    data_balance.classify((i, index), trajectory)
+
+            data_balance.remove_redundancy()
+            data_balance.save_to_disk(config.data_keys_dir)
+            print(cu.basic.prefix(self) + 'generated data keys.\n')
+
+        self.data_keys = np.loadtxt(data_key_path, delimiter=' ', usecols=[], dtype=np.int64)
+        return
 
 
     def __len__(self):
-        return int(1e10)
+        return len(self.data_keys)
 
 
-    def __getitem__(self, pesudo_index):
-        data_master_index, data_index = random.choice(self.data_keys)
-
+    def __getitem__(self, index):
+        data_master_index, data_index = self.data_keys[index]
 
         # data_master_index, data_index = 2, 5328
-
         # data_master_index, data_index = 0, 7463
 
         data_master = self.data_masters[data_master_index]
