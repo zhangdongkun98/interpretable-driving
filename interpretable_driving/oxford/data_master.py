@@ -32,6 +32,7 @@ class DataMaster(object):
         self.ins = data.InertialNavigationSystem(path)
         self.vo = data.VisualOdometry(path)
         self.ro = data.RadarOdometry(path)
+        self.stereo_centre = data.StereoCentre(path)
 
 
         '''reference timestamps'''
@@ -39,7 +40,7 @@ class DataMaster(object):
         max_timestamp = min(
                             # self.velodyne_left_timestamp_array[-1],
                             # self.velodyne_right_timestamp_array[-1],
-                            # self.stereo_centre_timestamp_array[-1],
+                            self.stereo_centre.timestamps[-1],
                             self.ins.timestamps[-1],
                             self.vo.timestamps[-1],
                             self.ro.timestamps[-1],
@@ -47,7 +48,7 @@ class DataMaster(object):
         min_timestamp = max(
                             # self.velodyne_left_timestamp_array[0],
                             # self.velodyne_right_timestamp_array[0],
-                            # self.stereo_centre_timestamp_array[0],
+                            self.stereo_centre.timestamps[0],
                             self.ins.timestamps[0],
                             self.vo.timestamps[0],
                             self.ro.timestamps[0],
@@ -56,7 +57,7 @@ class DataMaster(object):
         self.timestamps = self.ro.timestamps
         self.ref_timestamp_array = self.ro.timestamps[mask]
         t2 = time.time()
-        print('[{}] {} generate time (reference.timestamps): '.format(self.__class__.__name__, self.name), t2-t1)
+        print(cu.basic.prefix(self) + self.name + ' generate time (reference.timestamps): ', t2-t1)
         print()
 
         self.delta_t = np.average(np.diff(1e-6* self.ref_timestamp_array))
@@ -70,6 +71,7 @@ class DataMaster(object):
 
     def init_augment_data(self):
         self.pose_velocity = data_augment.PoseVelocity(self.path, self.timestamps, self.ro, self.ins, self.imu_height)
+        self.stereo_centre_augment = data_augment.StereoCentreAugment(self.path, self.timestamps)
 
         print()
 

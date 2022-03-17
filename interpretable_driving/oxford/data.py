@@ -35,7 +35,7 @@ class InertialNavigationSystem(Data):
         self.data = pd.read_csv(join(path, 'gps', 'ins.csv'))
         self.timestamps = self.data['timestamp'].values
         self.delta_t = np.average(np.diff(1e-6* self.timestamps))
-        print('[{}] {} freq: '.format(self.__class__.__name__, self.dataset_name), 1/ self.delta_t)
+        # print(cu.basic.prefix(self) + self.dataset_name + ' freq: ', 1/ self.delta_t)
 
     def __getitem__(self, key):
         return self.data[key]
@@ -49,7 +49,7 @@ class VisualOdometry(Data):
         self.data = pd.read_csv(join(path, 'vo', 'vo.csv'))
         self.timestamps = self.data['destination_timestamp'].values
         self.delta_t = np.average(np.diff(1e-6* self.timestamps))
-        print('[{}] {} freq: '.format(self.__class__.__name__, self.dataset_name), 1/ self.delta_t)
+        # print(cu.basic.prefix(self) + self.dataset_name + ' freq: ', 1/ self.delta_t)
 
 
 
@@ -60,10 +60,23 @@ class RadarOdometry(Data):
         self.data = pd.read_csv(join(path, 'gt', 'radar_odometry.csv'))
         self.timestamps = self.data['destination_timestamp'].values
         self.delta_t = np.average(np.diff(1e-6* self.timestamps))
-        print('[{}] {} freq: '.format(self.__class__.__name__, self.dataset_name), 1/ self.delta_t)
+        # print(cu.basic.prefix(self) + self.dataset_name + ' freq: ', 1/ self.delta_t)
 
     def __getitem__(self, key):
         return self.data[key]
+
+
+
+class StereoCentre(Data):
+    def __init__(self, path):
+        super().__init__(path)
+
+        self.data_path = join(path, 'stereo/centre')
+        self.timestamps = np.loadtxt(join(path, 'stereo.timestamps'), delimiter=' ', usecols=[0], dtype=np.int64)
+        self.delta_t = np.average(np.diff(1e-6* self.timestamps))
+        # print(cu.basic.prefix(self) + self.dataset_name + ' freq: ', 1/ self.delta_t)
+
+
 
 
 

@@ -2,14 +2,19 @@ import carla_utils as cu
 
 import os
 from os.path import join
+from tqdm import tqdm
 import numpy as np
 import time
+import cv2
+from PIL import Image
+from colour_demosaicing import demosaicing_CFA_Bayer_bilinear as demosaic
 
 from . import data
+from .utils import camera_model
 
 
 class DataAugment(data.Data):
-    def __init__(self, path):
+    def __init__(self, path, timestamps):
         super().__init__(path)
 
         self.save_path = join(path, 'augment')
@@ -18,7 +23,7 @@ class DataAugment(data.Data):
 
 class PoseVelocity(DataAugment):
     def __init__(self, path, timestamps, ro: data.RadarOdometry, ins: data.InertialNavigationSystem, imu_height):
-        super().__init__(path)
+        super().__init__(path, timestamps)
 
         self.file_name = 'pose_velocity.txt'
 
@@ -62,6 +67,45 @@ class PoseVelocity(DataAugment):
 
 
 
+class StereoCentreAugment(DataAugment):
+    def __init__(self, path, timestamps):
+        super().__init__(path, timestamps)
+
+        self.data = data.StereoCentre(path)
+        self.camera_model = camera_model.CameraModel(
+            join(os.path.split(os.path.abspath(__file__))[0], 'models'),
+            'stereo/centre',
+        )
+        self.data_path = join(self.save_path, 'stereo_centre')
+        if not cu.system.isdir(self.data_path):
+            cu.system.mkdir(self.data_path)
+
+            for timestamp in tqdm(timestamps):
+                t = data.find_nearest(timestamp, self.data.timestamps)
+                image = self.load_image(t)
+                self.save_image(timestamp, image)
+        return
+
+
+    def load_image(self, timestamp):
+        image = cv2.imread(join(self.data.data_path, str(timestamp)+'.png'), cv2.IMREAD_GRAYSCALE)
+
+        image = demosaic(image, 'gbrg')
+        image = self.camera_model.undistort(image)
+        image = np.array(image).astype(np.uint8)
+        image[:,:,[0,2]] = image[:,:,[2,0]]   # change BGR to RGB
+        return image
+
+
+    def save_image(self, timestamp, image):
+        image[:,:,[0,2]] = image[:,:,[2,0]]
+        image_path = join(self.data_path, str(timestamp)+'.png')
+        image = Image.fromarray(image)
+        # image = image.crop([0,200, 1280,960])
+        # image = image.resize((self.param.image.image_width, self.param.image.image_height))
+        image.save(image_path)
+
+
 
 
 def cum_odometry(delta_pose_array, imu_height):
@@ -80,5 +124,4 @@ def cum_odometry(delta_pose_array, imu_height):
     # pose_array[2,:] -= imu_height
     pose_array[3:,:] = cu.basic.pi2pi(pose_array[3:,:])
     return pose_array
-
 

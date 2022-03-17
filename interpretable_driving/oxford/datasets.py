@@ -18,7 +18,7 @@ from .data_master import DataMaster
 
 
 class DatasetTemplate(Dataset):
-    DataMaster = DataMaster
+    data_master_cls = DataMaster
 
     def __init__(self, config, mode):
         
@@ -30,18 +30,10 @@ class DatasetTemplate(Dataset):
         data_master_names = []
         for basedir in self.basedir:
             data_master_names.extend([(basedir, name) for name in os.listdir(basedir)])
+        
+        self.data_master_names = self.split(mode, data_master_names)
 
-        assert len(data_master_names) > 3
-        if mode == 'train':
-            self.data_master_names = data_master_names[:-2]
-        elif mode == 'evaluate':
-            self.data_master_names = data_master_names[-2:-1]
-        elif mode == 'test':
-            self.data_master_names = data_master_names[-1:]
-        else:
-            raise NotImplementedError
-
-        self.data_masters = [self.DataMaster(join(basedir, name)) for (basedir, name) in self.data_master_names]
+        self.data_masters = [self.data_master_cls(join(basedir, name)) for (basedir, name) in self.data_master_names]
 
         process_list = []
         for data_master in self.data_masters:
@@ -57,15 +49,26 @@ class DatasetTemplate(Dataset):
         return
 
 
-class TrajectoryDataset(DatasetTemplate):
-    # trajectory_time = 5.0
-    # max_speed = 12.2
-    # max_length = max_speed * trajectory_time
-    # num_points = 20
+    def split(self, mode, data_master_names):
+        assert len(data_master_names) > 3
+        if mode == 'train':
+            _data_master_names = data_master_names[:-2]
+        elif mode == 'evaluate':
+            _data_master_names = data_master_names[-2:-1]
+        elif mode == 'test':
+            _data_master_names = data_master_names[-1:]
+        else:
+            raise NotImplementedError
+        return _data_master_names
 
+
+
+
+class TrajectoryDataset(DatasetTemplate):
+    data_master_cls = DataMaster
     data_balance_cls = None
 
-    skip_time = cu.basic.Data(start=0.0, end=DataMaster.trajectory_time)
+    skip_time = cu.basic.Data(start=0.0, end=data_master_cls.trajectory_time)
 
     def __init__(self, config, mode):
         super().__init__(config, mode)
