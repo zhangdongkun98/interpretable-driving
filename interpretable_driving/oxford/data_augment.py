@@ -77,10 +77,11 @@ class StereoCentreAugment(DataAugment):
             'stereo/centre',
         )
         self.data_path = join(self.save_path, 'stereo_centre')
-        if not cu.system.isdir(self.data_path):
-            cu.system.mkdir(self.data_path)
+        cu.system.mkdir(self.data_path)
 
-            for timestamp in tqdm(timestamps):
+        for timestamp in tqdm(timestamps):
+            image_path = join(self.data_path, str(timestamp)+'.png')
+            if not os.path.isfile(image_path):
                 t = data.find_nearest(timestamp, self.data.timestamps)
                 image = self.load_image(t)
                 self.save_image(timestamp, image)

@@ -71,7 +71,7 @@ class DataMaster(object):
 
     def init_augment_data(self):
         self.pose_velocity = data_augment.PoseVelocity(self.path, self.timestamps, self.ro, self.ins, self.imu_height)
-        self.stereo_centre_augment = data_augment.StereoCentreAugment(self.path, self.timestamps)
+        # self.stereo_centre_augment = data_augment.StereoCentreAugment(self.path, self.timestamps)
 
         print()
 
