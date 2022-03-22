@@ -10,8 +10,9 @@ setup(
     description='',
     install_requires=[
         'rllib',
-        # 'glvm',
         'carla-utils',
+
+        'colour_demosaicing',
     ],
 
     include_package_data=True
